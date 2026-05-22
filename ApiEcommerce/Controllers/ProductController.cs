@@ -39,7 +39,7 @@ namespace ApiEcommerce.Controllers
             {
                 return NotFound($"EL producto con el id {id} no existe");
             }
-            var productDTO = _mapper.Map<CategoryDTO>(product);
+            var productDTO = _mapper.Map<ProductDTO>(product);
 
             return Ok(productDTO);
         }
@@ -73,11 +73,33 @@ namespace ApiEcommerce.Controllers
                 ModelState.AddModelError("CustomError", $"Algo salió mal al guardar el registro {product.Name}");
                 return StatusCode(500, ModelState);
             }
-            return CreatedAtRoute("GetProduct", new { id = product.ProductId }, product);
+            var createdProduct = _productRepository.GetProduct(product.ProductId);
+            var productDTO = _mapper.Map<ProductDTO>(createdProduct);
+            return CreatedAtRoute("GetProduct", new { id = product.ProductId }, productDTO);
         }
 
 
+        [HttpGet("category/{categoryId:int}", Name = "GetProductsByCategory")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetProductsByCategory(int categoryId)
+        {
+            var categoryExists = _categoryRepository.CategoryExists(categoryId);
+            if (!categoryExists)
+            {
+                return NotFound($"La categoría con el id {categoryId} no existe");
+            }
+            var products = _productRepository.GetProductsByCategory(categoryId);
+            if (products.Count == 0)
+            {
+                return NotFound($"No se encontraro productos pertenecientes a la categoría {categoryId}");
+            }
+            var productsDTO = _mapper.Map<List<ProductDTO>>(products);
 
+            return Ok(productsDTO);
+        }
 
 
     }

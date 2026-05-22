@@ -26,10 +26,9 @@ namespace ApiEcommerce.Models.DTO
 
         public DateTime? UpdateDate { get; set; } = null;
 
-
-
         public int CategoryId { get; set; }
 
-  
+        public string CategoryName { get; set; } = string.Empty;
+
     }
 }

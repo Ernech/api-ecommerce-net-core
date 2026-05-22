@@ -55,12 +55,12 @@ namespace ApiEcommerce.Repository
             {
                 return null;
             }
-            return _dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+            return _dbContext.Products.Include(p=>p.Category).FirstOrDefault(p => p.ProductId == productId);
         }
 
         public ICollection<Product> GetProducts()
         {
-            return _dbContext.Products.OrderBy(p=>p.Name).ToList();
+            return [.. _dbContext.Products.Include(p => p.Category).OrderBy(p=>p.Name)];
         }
 
         public ICollection<Product> GetProductsByCategory(int categoryId)
@@ -69,7 +69,7 @@ namespace ApiEcommerce.Repository
             {
                 return [];
             }
-            return _dbContext.Products.Where(p => p.CategoryId == categoryId).OrderBy(p=>p.Name).ToList();
+            return [.. _dbContext.Products.Include(p => p.Category).Where(p => p.CategoryId == categoryId).OrderBy(p=>p.Name)];
         }
 
         public bool ProductExists(int productId)
