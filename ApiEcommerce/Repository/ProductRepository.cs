@@ -95,14 +95,16 @@ namespace ApiEcommerce.Repository
             return _dbContext.SaveChanges() >= 0;
         }
 
-        public ICollection<Product> SearchProduct(string productName)
+        public ICollection<Product> SearchProducts(string searchTerm)
         {
             IQueryable<Product> query = _dbContext.Products;
-            if (!String.IsNullOrWhiteSpace(productName))
+            var searchTermLower = searchTerm.ToLower();
+            if (!String.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(p=>p.Name.ToLower().Trim() == productName.ToLower().Trim());
+                query = query.Include(p => p.Category).Where(p=>p.Name.ToLower().Trim().Contains(searchTermLower) ||
+                p.Description.ToLower().Trim().Contains(searchTermLower));
             }
-            return query.OrderBy(p => p.Name).ToList();
+            return [.. query.OrderBy(p => p.Name)];
         }
 
         public bool UpdateProduct(Product product)
