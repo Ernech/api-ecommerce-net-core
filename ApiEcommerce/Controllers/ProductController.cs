@@ -44,7 +44,7 @@ namespace ApiEcommerce.Controllers
             return Ok(productDTO);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -142,6 +142,63 @@ namespace ApiEcommerce.Controllers
             }
             var units = quantity == 1 ? "unidad" : "unidades";
             return Ok($"Se compró la cantidad {quantity} {units} del producto '{name}'");
+        }
+
+        [HttpPut("{productId:int}",Name = "ModifyProduct")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CreateProduct(int productId, [FromBody] UpdateProductDTO updateProductDTO)
+        {
+            if (updateProductDTO == null)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!_productRepository.ProductExists(productId))
+            {
+                ModelState.AddModelError("CustomError", $"El producto con id {productId} no existe");
+                return NotFound(ModelState);
+            }
+            if (!_categoryRepository.CategoryExists(updateProductDTO.CategoryId))
+            {
+                ModelState.AddModelError("CustomError", "La categoria no existe");
+                return NotFound(ModelState);
+            }
+            var product = _mapper.Map<Product>(updateProductDTO);
+            product.ProductId = productId;
+            if (!_productRepository.UpdateProduct(product))
+            {
+                ModelState.AddModelError("CustomError", $"Algo salió mal al actualizar el registro {product.Name}");
+                return StatusCode(500, ModelState);
+            }
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}", Name = "DeleteProduct")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult DeleteProduct(int id)
+        {
+            if (id <= 0)
+            { 
+                return BadRequest(ModelState);
+            }
+            var product = _productRepository.GetProduct(id);
+            if (product == null)
+            {
+                return NotFound($"EL producto con el id {id} no existe");
+            }
+            if (!_productRepository.DeleteProduct(product))
+            {
+                ModelState.AddModelError("CustomError", $"Algo salió mal al eliminar el registro {product.Name}");
+                return StatusCode(500, ModelState);
+            }
+            return NoContent();
         }
 
     }
