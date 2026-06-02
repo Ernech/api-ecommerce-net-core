@@ -9,7 +9,7 @@ namespace ApiEcommerce.Models
 
         public string? Name { get; set; }
 
-        public string? Username { get; set; }
+        public string Username { get; set; } = String.Empty;
 
         public string? Password { get; set; }
 
