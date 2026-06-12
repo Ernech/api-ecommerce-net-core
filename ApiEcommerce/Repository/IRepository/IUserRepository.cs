@@ -14,6 +14,6 @@ namespace ApiEcommerce.Repository.IRepository
 
         Task<UserLoginResponseDTO> Login(UserLoginDTO userLoginDTO);
 
-        Task<User> Register(UserRegisterDTO userRegisterDTO);
+        Task<User> Register(CreateUserDTO createUserDTO);
     }
 }

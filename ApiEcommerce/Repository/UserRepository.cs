@@ -102,15 +102,15 @@ namespace ApiEcommerce.Repository
 
         }
 
-        public async Task<User> Register(UserRegisterDTO userRegisterDTO)
+        public async Task<User> Register(CreateUserDTO createUserDTO)
         {
-            var encryptedPassword = BCrypt.Net.BCrypt.HashPassword(userRegisterDTO.Password);
+            var encryptedPassword = BCrypt.Net.BCrypt.HashPassword(createUserDTO.Password);
             var user = new User() 
             { 
-                Name = userRegisterDTO.Name,
-                Username = userRegisterDTO.Username,
+                Name = createUserDTO.Name,
+                Username = createUserDTO.Username,
                 Password = encryptedPassword,
-                Role = userRegisterDTO.Role,
+                Role = createUserDTO.Role,
 
             };
             _dbContext.Users.Add(user);

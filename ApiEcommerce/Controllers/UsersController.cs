@@ -25,7 +25,7 @@ namespace ApiEcommerce.Controllers
         
         }
 
-        [HttpGet("{userId:int}")]
+        [HttpGet("{userId:int}", Name ="GetUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -41,6 +41,55 @@ namespace ApiEcommerce.Controllers
             var userDTO = _mapper.Map<UserDTO>(user);
             return Ok(userDTO);
         }
+
+        [HttpPost(Name = "RegisterUser")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RegisterUser([FromBody] CreateUserDTO createUserDTO)
+        {
+            if (createUserDTO == null || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (String.IsNullOrWhiteSpace(createUserDTO.Username))
+            {
+                return BadRequest("Username es requerido");
+            }
+            if (!_userRepository.IsUniqueUser(createUserDTO.Username))
+            {
+                return BadRequest("EL usuario ya existe");
+            }
+            var result = await _userRepository.Register(createUserDTO);
+            if (result == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al registrar el usuario");
+            }
+            return CreatedAtRoute("GetUser", new { userId = result.Id});
+        
+        }
+
+        [HttpPost("Login",Name = "LoginUser")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> LoginUser([FromBody] UserLoginDTO userLoginDTO)
+        {
+            if (userLoginDTO == null || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var result = await _userRepository.Login(userLoginDTO);
+            if (result == null)
+            {
+                return Unauthorized("Credenciales incorrectas");
+            }
+            return Ok(result);
+
+        }
+
 
     }
 }
