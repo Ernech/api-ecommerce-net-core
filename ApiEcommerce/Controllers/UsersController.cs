@@ -1,11 +1,13 @@
 ﻿using ApiEcommerce.Models.DTO;
 using ApiEcommerce.Repository.IRepository;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiEcommerce.Controllers
 {
+    [Authorize(Roles = "ADMIN")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController(IUserRepository userRepository, IMapper mapper) : ControllerBase
@@ -41,7 +43,7 @@ namespace ApiEcommerce.Controllers
             var userDTO = _mapper.Map<UserDTO>(user);
             return Ok(userDTO);
         }
-
+        [AllowAnonymous]
         [HttpPost(Name = "RegisterUser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -68,7 +70,7 @@ namespace ApiEcommerce.Controllers
             return CreatedAtRoute("GetUser", new { userId = result.Id});
         
         }
-
+        [AllowAnonymous]
         [HttpPost("Login",Name = "LoginUser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
