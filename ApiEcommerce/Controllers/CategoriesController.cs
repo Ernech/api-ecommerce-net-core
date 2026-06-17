@@ -39,6 +39,7 @@ namespace ApiEcommerce.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
         public IActionResult GetCategory(int id)
         {
             var category = _categoryRepository.GetCategory(id);

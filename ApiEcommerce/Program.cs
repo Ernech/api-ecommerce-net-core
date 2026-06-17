@@ -33,10 +33,10 @@ builder.Services.AddAuthentication(options => {
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
+        ValidateIssuer = false,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-        ValidateIssuerSigningKey = false,
-        ValidateAudience = true
+        ValidateIssuerSigningKey = true,
+        ValidateAudience = false
 
     };
 
@@ -68,6 +68,7 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("Api Commerce.NET 10 API")
                .WithTheme(ScalarTheme.Mars) // Options include Mars, DeepSpace, etc.
                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        
     });
 }
 
