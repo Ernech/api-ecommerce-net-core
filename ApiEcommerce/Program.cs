@@ -5,6 +5,7 @@ using ApiEcommerce.Repository.IRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -44,8 +45,36 @@ builder.Services.AddAuthentication(options => {
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new OpenApiComponents();
 
+        // CORRECCIÓN: Usar IOpenApiSecurityScheme en lugar de OpenApiSecurityScheme
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+        var schemeName = "Bearer";
+
+        // Al instanciar el objeto concreto, se almacena sin problemas en el diccionario de interfaces
+        document.Components.SecuritySchemes[schemeName] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header
+        };
+
+        document.Security ??= [];
+
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddCors(options=>
     {
         options.AddPolicy(PolicyNames.AllowSpecificOrigin,
@@ -68,13 +97,18 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("Api Commerce.NET 10 API")
                .WithTheme(ScalarTheme.Mars) // Options include Mars, DeepSpace, etc.
                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-        
+
+        options.Authentication = new ScalarAuthenticationOptions
+        {
+            PreferredSecuritySchemes = ["Bearer"]
+        };
+
     });
 }
 
 app.UseHttpsRedirection();
 app.UseCors(PolicyNames.AllowSpecificOrigin);
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.Run();
