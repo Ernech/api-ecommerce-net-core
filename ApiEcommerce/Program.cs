@@ -3,6 +3,7 @@ using ApiEcommerce.Data;
 using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -13,6 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 var dbConectionString = builder.Configuration.GetConnectionString("ConexionSql");
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(dbConectionString));
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 1024*1024;
+    options.UseCaseSensitivePaths = true;
+});
+
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository,UserRepository>();
@@ -42,7 +49,11 @@ builder.Services.AddAuthentication(options => {
     };
 
 });
-builder.Services.AddControllers();
+builder.Services.AddControllers(option => 
+{
+    option.CacheProfiles.Add(CacheProfiles.Default10, CacheProfiles.Profile10);
+    option.CacheProfiles.Add(CacheProfiles.Default20, CacheProfiles.Profile20);
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
@@ -108,6 +119,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(PolicyNames.AllowSpecificOrigin);
+app.UseResponseCaching();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
