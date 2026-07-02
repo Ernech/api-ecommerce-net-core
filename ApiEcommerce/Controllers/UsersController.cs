@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ApiEcommerce.Controllers
 {
     [Authorize(Roles = "ADMIN")]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class UsersController(IUserRepository userRepository, IMapper mapper) : ControllerBase
     {

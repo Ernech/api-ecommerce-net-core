@@ -2,6 +2,7 @@ using ApiEcommerce.Constants;
 using ApiEcommerce.Data;
 using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -86,6 +87,22 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 });
+
+var apiVersioningBuilder = builder.Services.AddApiVersioning(option=>
+{
+    option.AssumeDefaultVersionWhenUnspecified = true;
+    option.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    option.ReportApiVersions = true;
+    option.ApiVersionReader = ApiVersionReader.Combine(new QueryStringApiVersionReader("api-version")); //Api version
+});
+
+apiVersioningBuilder.AddApiExplorer(option => 
+{
+    option.GroupNameFormat = "'v'VVV";
+    option.SubstituteApiVersionInUrl = true;
+    
+});
+
 builder.Services.AddCors(options=>
     {
         options.AddPolicy(PolicyNames.AllowSpecificOrigin,
