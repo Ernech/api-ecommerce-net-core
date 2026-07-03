@@ -61,6 +61,40 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
+        document.Info = new OpenApiInfo
+        {
+            Title = "Api Ecommerce",
+            Version = "v1",
+            Description = "Api para Gestionar productos y categorías",
+            TermsOfService = new Uri("https://example.com/terms"),
+            Contact = new OpenApiContact
+            {
+                Name = "DevTalles",
+                Url = new Uri("https://devtalles.com")
+            },
+            License =new OpenApiLicense
+            { 
+                Name = "Licencia de uso",
+                Url = new Uri("https://example.com/license"),
+            }
+        };
+        //document.Info = new OpenApiInfo
+        //{
+        //    Title = "Api Ecommerce V2",
+        //    Version = "v2",
+        //    Description = "Api para Gestionar productos y categorías",
+        //    TermsOfService = new Uri("https://example.com/terms"),
+        //    Contact = new OpenApiContact
+        //    {
+        //        Name = "DevTalles",
+        //        Url = new Uri("https://devtalles.com")
+        //    },
+        //    License = new OpenApiLicense
+        //    {
+        //        Name = "Licencia de uso",
+        //        Url = new Uri("https://example.com/license"),
+        //    }
+        //};
         document.Components ??= new OpenApiComponents();
 
         // CORRECCIÓN: Usar IOpenApiSecurityScheme en lugar de OpenApiSecurityScheme
@@ -93,7 +127,7 @@ var apiVersioningBuilder = builder.Services.AddApiVersioning(option=>
     option.AssumeDefaultVersionWhenUnspecified = true;
     option.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
     option.ReportApiVersions = true;
-    option.ApiVersionReader = ApiVersionReader.Combine(new QueryStringApiVersionReader("api-version")); //Api version
+    //soption.ApiVersionReader = ApiVersionReader.Combine(new QueryStringApiVersionReader("api-version")); //Api version
 });
 
 apiVersioningBuilder.AddApiExplorer(option => 
@@ -123,7 +157,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("Api Commerce.NET 10 API")
-               .WithTheme(ScalarTheme.Mars) // Options include Mars, DeepSpace, etc.
+               .WithTheme(ScalarTheme.DeepSpace) // Options include Mars, DeepSpace, etc.
                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
 
         options.Authentication = new ScalarAuthenticationOptions
