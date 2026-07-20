@@ -49,13 +49,14 @@ namespace ApiEcommerce.Controllers
         }
 
         [HttpPost(Name = "CreateProduct")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateProduct([FromBody] CreateProductDTO createProductDTO)
+        public IActionResult CreateProduct([FromForm] CreateProductDTO createProductDTO)
         {
             if (createProductDTO == null)
             {
@@ -72,6 +73,15 @@ namespace ApiEcommerce.Controllers
                 return BadRequest(ModelState);
             }
             var product = _mapper.Map<Product>(createProductDTO);
+            //Agregando imagen
+            if (createProductDTO.Image != null)
+            {
+                UploadProductImage(createProductDTO, product);
+            }
+            else 
+            {
+                product.ImageUrl = "https://placehold.co/600x400";
+            }
             if (!_productRepository.CreateProduct(product))
             {
                 ModelState.AddModelError("CustomError", $"Algo salió mal al guardar el registro {product.Name}");
@@ -149,13 +159,14 @@ namespace ApiEcommerce.Controllers
         }
 
         [HttpPut("{productId:int}",Name = "ModifyProduct")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateProduct(int productId, [FromBody] UpdateProductDTO updateProductDTO)
+        public IActionResult ModifyProduct(int productId, [FromForm] UpdateProductDTO updateProductDTO)
         {
             if (updateProductDTO == null)
             {
@@ -173,12 +184,41 @@ namespace ApiEcommerce.Controllers
             }
             var product = _mapper.Map<Product>(updateProductDTO);
             product.ProductId = productId;
+            if (updateProductDTO.Image != null)
+            {
+                UploadProductImage(updateProductDTO, product);
+            }
+            else
+            {
+                product.ImageUrl = "https://placehold.co/600x400";
+            }
             if (!_productRepository.UpdateProduct(product))
             {
                 ModelState.AddModelError("CustomError", $"Algo salió mal al actualizar el registro {product.Name}");
                 return StatusCode(500, ModelState);
             }
             return NoContent();
+        }
+
+        private void UploadProductImage(dynamic productDTO, Product product)
+        {
+            string fileName = product.ProductId + Guid.NewGuid().ToString() + Path.GetExtension(productDTO.Image.FileName);
+            var imageFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwrot", "ProductsImages");
+            if (!Directory.Exists(imageFolder))
+            {
+                Directory.CreateDirectory(imageFolder);
+            }
+            var filePath = Path.Combine(imageFolder, fileName);
+            FileInfo file = new(filePath);
+            if (file.Exists)
+            {
+                file.Delete();
+            }
+            using var fileStream = new FileStream(filePath, FileMode.Create);
+            productDTO.Image.CopyTo(fileStream);
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+            product.ImageUrl = $"{baseUrl}/ProductsImages/{fileName}";
+            product.ImageUrlLocal = filePath;
         }
 
         [HttpDelete("{id:int}", Name = "DeleteProduct")]
