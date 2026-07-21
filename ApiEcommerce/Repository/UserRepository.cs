@@ -2,7 +2,7 @@
 using ApiEcommerce.Models;
 using ApiEcommerce.Models.DTO;
 using ApiEcommerce.Repository.IRepository;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,13 +13,13 @@ using System.Text;
 namespace ApiEcommerce.Repository
 {
     public class UserRepository(ApplicationDbContext dbContext,IConfiguration configuration, UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager, IMapper mapper) : IUserRepository
+        RoleManager<IdentityRole> roleManager) : IUserRepository
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
         private readonly string? secretKey = configuration.GetValue<string>("ApiSettings:SecretKey");
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-        private readonly IMapper _mapper = mapper;
+
 
 
         public ApplicationUser? GetUser(string id)
@@ -111,7 +111,7 @@ namespace ApiEcommerce.Repository
             {
                 Message="Login exitoso",
                 Token = handlerToken.WriteToken(token),
-                User = _mapper.Map<UserDataDTO>(user)
+                User = user.Adapt<UserDataDTO>()
             };
 
         }
@@ -147,7 +147,7 @@ namespace ApiEcommerce.Repository
                 }
                 await _userManager.AddToRoleAsync(user,userRole);
                 var createdUser = _dbContext.ApplicationUsers.FirstOrDefault(u => u.UserName == createUserDTO.Username);
-                return _mapper.Map<UserDataDTO>(createdUser);
+                return createdUser.Adapt<UserDataDTO>();
             }
             var errors = string.Join(",",result.Errors.Select(e=>e.Description));
             throw new ApplicationException($"No se pudo realizar el registro {errors}");

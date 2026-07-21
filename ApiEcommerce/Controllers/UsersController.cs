@@ -1,21 +1,20 @@
 ﻿using ApiEcommerce.Models.DTO;
 using ApiEcommerce.Repository.IRepository;
 using Asp.Versioning;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiEcommerce.Controllers
 {
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "Admin")]
     [ApiVersionNeutral]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
-    public class UsersController(IUserRepository userRepository, IMapper mapper) : ControllerBase
+    public class UsersController(IUserRepository userRepository) : ControllerBase
     {
         private readonly IUserRepository _userRepository = userRepository;
-        private readonly IMapper _mapper = mapper;
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -23,8 +22,8 @@ namespace ApiEcommerce.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUsers()
         { 
-            var users =_userRepository.GetUsers();
-            var usersDTO = _mapper.Map<List<UserDTO>>(users);
+            var users = _userRepository.GetUsers();
+            var usersDTO = users.Adapt<List<UserDTO>>();
             return Ok(usersDTO);
         
         }
@@ -42,7 +41,7 @@ namespace ApiEcommerce.Controllers
                 return NotFound($"El usuario con el id {userId} no fue encontrado");
                 
             }
-            var userDTO = _mapper.Map<UserDTO>(user);
+            var userDTO = user.Adapt<UserDTO>();
             return Ok(userDTO);
         }
         [AllowAnonymous]

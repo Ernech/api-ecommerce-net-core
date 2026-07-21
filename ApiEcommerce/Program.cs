@@ -11,12 +11,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
+using Mapster;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-var dbConectionString = builder.Configuration.GetConnectionString("ConexionSql");
+var dbConnectionString = builder.Configuration.GetConnectionString("ConexionSql");
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(dbConectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+  options.UseSqlServer(dbConnectionString)
+  .UseSeeding((context, _) =>
+  {
+      var appContext = (ApplicationDbContext)context;
+      DataSeeder.SeedData(appContext);
+  })
+);
 builder.Services.AddResponseCaching(options =>
 {
     options.MaximumBodySize = 1024*1024;
@@ -26,10 +34,8 @@ builder.Services.AddResponseCaching(options =>
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository,UserRepository>();
-builder.Services.AddAutoMapper(cfg => 
-{ 
-    cfg.AddMaps(typeof(Program).Assembly); 
-});
+// Mapster: scan assembly for IRegister implementations to configure mappings
+TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
